@@ -1,0 +1,1 @@
+gcc ./app/*.c ./app/*/*.c -o assembly-to-c.o
