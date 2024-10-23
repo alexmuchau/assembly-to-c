@@ -1,51 +1,24 @@
 #include "tools/libs.h"
-#include "instructions/instructions.h"
-
-int init_menu() {
-    printf("###############################\n");
-    printf("(1) - Escrever instrução\n(2) - Ver registradores\n(3) - Ver código completo\n(0) - Sair\n");
-    printf("###############################\n");
-    
-    int opt = 0;
-    scanf("%i", &opt);
-    
-    if (opt > 3) {
-        printf("WARNING - Nenhuma opção válida");
-    };
-    
-    return opt;
-}
-
-int switch_case(int *regs, int opt) {
-    switch (opt) {
-        case 1:
-            inst_reader();
-            return 0;
-            
-        case 2:
-            printf("Opção 2");
-            return 0;
-            
-        case 3:
-            printf("Opção 3");
-            return 0;
-            
-        case 0:
-            printf("Opção 0");
-            return 1;
-            
-        default:
-            printf("WARNING - Nenhuma opção válida");
-            return 0;
-    }
-}
+#include "tools/tools.h"
+#include "Method/methods.h"
 
 int main() {
     int * regs = malloc(sizeof(int)*32);
-    int is_exit = 0;
+    Method * methods[9] = {
+        construct_method("add", 'R'),
+        construct_method("sub", 'R'),
+        construct_method("sll", 'R'),
+        construct_method("addi", 'I'),
+        construct_method("lw", 'I'),
+        construct_method("sw", 'I'),
+        construct_method("j", 'J'),
+        construct_method("jal", 'J'),
+        construct_method("jr", 'J'),
+    };
+    int opt = 1;
     
-    while (is_exit == 0) {
-        int opt = init_menu();
-        is_exit = switch_case(regs, opt);
+    while (opt != 0) {
+        // opt = init_menu();
+        switch_case(regs, methods, opt);
     }
 }
