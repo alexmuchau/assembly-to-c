@@ -8,7 +8,7 @@ int print_header_spacer() {
 }
 
 int print_spacer() {
-    printf("-------------");
+    printf("\n-------------\n\n");
 }
 
 int init_menu() {
@@ -30,8 +30,8 @@ void switch_case(int * regs, Method * methods[9], int opt) {
     switch (opt) {
         case 1:
             Instruction * instruction = inst_reader();
+            print_spacer();
             if (validate_instructions(instruction, methods) == 0) {
-                print_spacer();
                 printf("Instrução incorreta!");
             }
             

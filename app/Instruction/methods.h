@@ -1,6 +1,6 @@
 #include "../tools/libs.h"
 #include "Instruction.h"
-#include "../Method/Method.h"
+#include "../Method/methods.h"
 
 Instruction * inst_reader();
-int validate_instructions(Instruction * instruction, char methods[9][5]);
+int validate_instructions(Instruction * instruction, Method * methods[9]);

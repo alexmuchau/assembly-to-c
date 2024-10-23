@@ -7,6 +7,7 @@ typedef struct Method Method;
 struct Method {
     char * method;
     char type;
+    int (*validate_method)(char * instruction, Method * method);
 };
 
 #endif

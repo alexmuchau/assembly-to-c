@@ -44,10 +44,28 @@ Instruction * inst_reader() {
     return head;
 }
 
-int validate_instructions(Instruction * instruction, char methods[9][5]) {
-    // int length = strlen(*(instruction->data));
+int validate_instructions(Instruction * instruction, Method * methods[9]) {
+    int length = strlen(instruction->data);
+    instruction->data = realloc(instruction->data, length + 1);
     
+    if (length < 5) {
+        printf("Instrução inválida, não contém tamanho adequado");
+        return 0;
+    }
     
+    char * inst = instruction->data;
+    int char_length = 0;
+    
+    // EXTRACTING METHOD
+    while (!isspace(inst[char_length])) char_length++;
+    char * method_str = malloc(sizeof(char)*char_length);
+    strncpy(method_str, inst, char_length + 1);
+    
+    Method * method = find_method(method_str, methods);
+    
+    while (isspace(inst[char_length])) char_length++;
+    inst = inst + char_length;
+    method->validate_method(inst, method);
 }
 
 #endif
