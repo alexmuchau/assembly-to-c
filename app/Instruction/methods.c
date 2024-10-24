@@ -59,13 +59,20 @@ int validate_instructions(Instruction * instruction, Method * methods[9]) {
     // EXTRACTING METHOD
     while (!isspace(inst[char_length])) char_length++;
     char * method_str = malloc(sizeof(char)*char_length);
-    strncpy(method_str, inst, char_length + 1);
+    strncpy(method_str, inst, char_length);
     
     Method * method = find_method(method_str, methods);
+    
+    if (!method) {
+        printf("ERROR ON FINDING METHOD\n");
+        return 0;
+    }
     
     while (isspace(inst[char_length])) char_length++;
     inst = inst + char_length;
     method->validate_method(inst, method);
+    
+    return 1;
 }
 
 #endif

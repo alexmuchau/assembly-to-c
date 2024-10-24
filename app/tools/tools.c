@@ -29,7 +29,13 @@ int init_menu() {
 void switch_case(int * regs, Method * methods[9], int opt) {
     switch (opt) {
         case 1:
-            Instruction * instruction = inst_reader();
+            // Instruction * instruction = inst_reader();
+            char * data = "sub $1, $2";
+            Instruction * instruction = malloc(sizeof(Instruction));
+            instruction->data = malloc(sizeof(char)*32);
+            strcpy(instruction->data, data);
+            instruction->next = NULL;
+            
             print_spacer();
             if (validate_instructions(instruction, methods) == 0) {
                 printf("Instrução incorreta!");

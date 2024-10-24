@@ -17,8 +17,11 @@ int main() {
     };
     int opt = 1;
     
-    while (opt != 0) {
+    char * test = malloc(sizeof(char)*4);
+    printf("%c", test[3]);
+    
+    // while (opt != 0) {
         // opt = init_menu();
-        switch_case(regs, methods, opt);
-    }
+        // switch_case(regs, methods, opt);
+    // }
 }
