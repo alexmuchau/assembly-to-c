@@ -1,9 +1,11 @@
 #include "tools/libs.h"
 #include "tools/tools.h"
 #include "Method/methods.h"
+#include "Memory/methods.h"
 
 int main() {
-    int regs[32] = {0};
+    int * regs = malloc(sizeof(int)*32);
+    Memory * memory = construct_memory();
     
     regs[1] = 0x12;
     regs[2] = 8;
@@ -20,13 +22,9 @@ int main() {
         construct_method("jr", 'J'),
     };
     int opt = 1;
-    unsigned int *fixed_address = (unsigned int *)0x12345678;
-    // *fixed_address = 12;
-    
-    printf("%u", *fixed_address);
     
     // while (opt != 0) {
         // opt = init_menu();
-        // switch_case(&regs, methods, opt);
+        switch_case(&regs, &memory, methods, opt);
     // }
 }

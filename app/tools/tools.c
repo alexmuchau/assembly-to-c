@@ -26,7 +26,7 @@ int init_menu() {
     return opt;
 }
 
-void switch_case(int ** regs, Method * methods[9], int opt) {
+void switch_case(int ** regs, Memory ** memory, Method * methods[9], int opt) {
     switch (opt) {
         case 1:
             // Instruction * instruction = inst_reader();
@@ -41,7 +41,7 @@ void switch_case(int ** regs, Method * methods[9], int opt) {
                 printf("Instrução incorreta!");
             }
             
-            instruction->method->execute_method(&instruction, regs);
+            instruction->method->execute_method(&instruction, regs, memory);
             printf("\nreg3=%i", (*regs)[3]);
             
             break;

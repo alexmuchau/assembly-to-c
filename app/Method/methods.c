@@ -55,7 +55,7 @@ int validate_j_method(Instruction * inst) {
     // printf("Validando método J com a instrução %s e método %s\n", params, method->method);
 }
 
-int execute_r_method(Instruction ** inst, int ** regs) {
+int execute_r_method(Instruction ** inst, int ** regs, Memory ** memory) {
     // +1 por conta do $
     int dest_reg = atoi((*inst)->params->param + 1);
     int op1_reg = atoi((*inst)->params->next->param + 1);
@@ -80,9 +80,11 @@ int execute_r_method(Instruction ** inst, int ** regs) {
         (*regs)[dest_reg] = (*regs)[op1_reg] - (*regs)[op2_reg];
         return 1;
     }
+    
+    return 0;
 }
 
-int execute_i_method(Instruction ** inst, int ** regs) {
+int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory) {
     int reg1 = atoi((*inst)->params->param + 1);
     
     if (strcmp((*inst)->method->method, "addi") == 0) {
@@ -93,6 +95,21 @@ int execute_i_method(Instruction ** inst, int ** regs) {
         
         return 1;
     }
+    
+    char * tag = (*inst)->params->next->param;
+    Address ** a = get_address(memory, (*memory)->head, tag);
+    
+    if (strcmp((*inst)->method->method, "lw") == 0) {
+        regs[reg1] = (*a)->value;
+        return 1;
+    }
+    
+    if (strcmp((*inst)->method->method, "sw") == 0) {
+        (*a)->value = regs[reg1];
+        return 1;
+    }
+    
+    return 0;
 }
 
 Method * construct_method(char * method, char type) {
