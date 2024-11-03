@@ -6,6 +6,8 @@ typedef struct Param Param;
 
 struct Param {
     char * param;
+    
+    // R = Registrador, L = Label, N = Number, M = Memory Access
     char type;
     int * value;
     

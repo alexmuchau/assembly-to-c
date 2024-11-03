@@ -26,20 +26,23 @@ int init_menu() {
     return opt;
 }
 
-void switch_case(int * regs, Method * methods[9], int opt) {
+void switch_case(int ** regs, Method * methods[9], int opt) {
     switch (opt) {
         case 1:
             // Instruction * instruction = inst_reader();
-            char * data = "sub $1, $2";
+            char * word = "sub $3, $1, $2";
             Instruction * instruction = malloc(sizeof(Instruction));
-            instruction->data = malloc(sizeof(char)*32);
-            strcpy(instruction->data, data);
+            instruction->word = malloc(sizeof(char)*32);
+            strcpy(instruction->word, word);
             instruction->next = NULL;
             
             print_spacer();
-            if (validate_instructions(instruction, methods) == 0) {
+            if (get_and_validate_instructions(&instruction, methods) == 0) {
                 printf("Instrução incorreta!");
             }
+            
+            instruction->method->execute_method(&instruction, regs);
+            printf("\nreg3=%i", (*regs)[3]);
             
             break;
         case 2:

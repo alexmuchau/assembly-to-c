@@ -12,8 +12,11 @@ int verify_inst(char * inst) {
 
 Instruction * construct_inst() {
     Instruction * inst = malloc(sizeof(Instruction));
-    inst->data = NULL;
+    
+    inst->word = NULL;
     inst->next = NULL;
+    inst->params = NULL;
+    inst->params_qtd = 0;
     
     return inst;
 }
@@ -31,7 +34,7 @@ Instruction * inst_reader() {
         char * line = malloc(sizeof(char)*32);
         while ((read = getline(&line, &len, stdin)) != -1) {
             if (read > 0) {
-                actual_inst->data = line;
+                actual_inst->word = line;
                 actual_inst->next = construct_inst();
                 actual_inst = actual_inst->next;
                 break;
@@ -44,33 +47,37 @@ Instruction * inst_reader() {
     return head;
 }
 
-int validate_instructions(Instruction * instruction, Method * methods[9]) {
-    int length = strlen(instruction->data);
-    instruction->data = realloc(instruction->data, length + 1);
+int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
+    int length = strlen((*inst)->word);
+    (*inst)->word = realloc((*inst)->word, length + 1);
     
     if (length < 5) {
         printf("Instrução inválida, não contém tamanho adequado");
         return 0;
     }
     
-    char * inst = instruction->data;
+    char * word = (*inst)->word;
     int char_length = 0;
     
     // EXTRACTING METHOD
-    while (!isspace(inst[char_length])) char_length++;
+    while (!isspace(word[char_length])) char_length++;
+    
     char * method_str = malloc(sizeof(char)*char_length);
-    strncpy(method_str, inst, char_length);
+    strncpy(method_str, word, char_length);
     
-    Method * method = find_method(method_str, methods);
+    (*inst)->method = find_method(method_str, methods);
     
-    if (!method) {
+    if (!(*inst)->method) {
         printf("ERROR ON FINDING METHOD\n");
         return 0;
     }
     
-    while (isspace(inst[char_length])) char_length++;
-    inst = inst + char_length;
-    method->validate_method(inst, method);
+    while (isspace(word[char_length])) char_length++;
+    
+    word += char_length;
+    
+    get_params(&(*inst), word);
+    (*inst)->method->validate_method((*inst));
     
     return 1;
 }

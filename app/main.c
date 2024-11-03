@@ -3,7 +3,11 @@
 #include "Method/methods.h"
 
 int main() {
-    int * regs = malloc(sizeof(int)*32);
+    int regs[32] = {0};
+    
+    regs[1] = 0x12;
+    regs[2] = 8;
+    
     Method * methods[9] = {
         construct_method("add", 'R'),
         construct_method("sub", 'R'),
@@ -16,12 +20,13 @@ int main() {
         construct_method("jr", 'J'),
     };
     int opt = 1;
+    unsigned int *fixed_address = (unsigned int *)0x12345678;
+    // *fixed_address = 12;
     
-    char * test = malloc(sizeof(char)*4);
-    printf("%c", test[3]);
+    printf("%u", *fixed_address);
     
     // while (opt != 0) {
         // opt = init_menu();
-        // switch_case(regs, methods, opt);
+        // switch_case(&regs, methods, opt);
     // }
 }

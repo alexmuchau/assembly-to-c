@@ -4,9 +4,16 @@
 struct Instruction;
 typedef struct Instruction Instruction;
 
+#include "../Method/Method.h"
+#include "../Param/Param.h"
+
 struct Instruction {
-    char * data;
+    char * word;
     Instruction * next;
+
+    Method * method;
+    Param * params;
+    int params_qtd;
 };
 
 #endif
