@@ -3,6 +3,13 @@
 
 #include "methods.h"
 
+Label * find_label(char * search_value, Label * head) {
+    if (strcmp(search_value, head->value) == 0) return head;
+    
+    if (!head->next) return head;
+    return find_label(search_value, head->next);
+}
+
 Label * construct_label(char * value, Instruction * inst) {
     Label * l = malloc(sizeof(Label));
     l->value = value;
@@ -18,13 +25,6 @@ Instruction * get_inst_on_labels(char * search_value, Label * head) {
     if (strcmp(search_value, l->value) != 0) return NULL;
     
     return l->inst;
-}
-
-Label * find_label(char * search_value, Label * head) {
-    if (strcmp(search_value, head->value) == 0) return head;
-    
-    if (!head->next) return head;
-    return find_label(search_value, head->next);
 }
 
 void create_new_label(char * value, Instruction * inst, Label * head) {

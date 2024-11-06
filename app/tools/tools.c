@@ -29,7 +29,7 @@ int init_menu() {
 void switch_case(int ** regs, Memory ** memory, Label ** label, Method * methods[9], int opt) {
     switch (opt) {
         case 1:
-            Instruction * instruction = inst_reader();
+            // Instruction * instruction = inst_reader();
             char * word = "TESTE:";
             Instruction * instruction = malloc(sizeof(Instruction));
             instruction->word = malloc(sizeof(char)*32);

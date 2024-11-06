@@ -53,19 +53,20 @@ int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
     char * word = (*inst)->word;
     
     // trim init space
-    while (isspace(word[len])) len++;
+    while (isspace(word[len]) && word[len] != '\0') len++;
     
     word += len;
     len = 0;
     
     // EXTRACTING METHOD
-    while (!isspace(word[len])) {len++; total_length++;}
+    while (!isspace(word[len]) && word[len] != '\0') {len++; total_length++;}
     
     char * method_str = malloc(sizeof(char)*len);
     strncpy(method_str, word, len);
     
     (*inst)->method = find_method(method_str, methods);
     
+    len = 0;
     while (isspace(word[len])) len++;
     
     word += len;
@@ -87,10 +88,11 @@ void execute_instruction(Instruction ** inst, int ** regs, Memory ** memory, Lab
         return;
     }
     
+    // Caso seja label
     if (!(*inst)->method) {
         printf("Label: %s", (*inst)->params->param);
         
-        create_new_label((*inst)->params->param, (*inst), label);
+        create_new_label((*inst)->params->param, (*inst), (*label));
         
         return;
     }
