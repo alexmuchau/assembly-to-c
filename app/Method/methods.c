@@ -3,14 +3,26 @@
 
 #include "methods.h"
 
-int rec_validate_r_params(Param * param) {
-    if (!param) {
-        return 1;
-    } else if (param->type != 'R') {
-        return 0;
-    }
+int get_tag(char * tag, int * regs) {
+    int len = 0;
+    while (tag[len] != '(') len++;
+    char * c = malloc(sizeof(char)*len);
+    strncpy(c, tag, len);
+    int shift_num = atoi(c);
     
-    return rec_validate_r_params(param->next);
+    free(c);
+    
+    // Jumping $
+    tag += len + 2;
+    len = 0;
+    while (tag[len] != ')') len++;
+    c = malloc(sizeof(char)*len);
+    strncpy(c, tag, len);
+    int reg_value = regs[atoi(c)];
+    
+    free(c);
+    
+    return reg_value + shift_num;
 }
 
 int validate_r_method(Instruction * inst) {
@@ -22,7 +34,9 @@ int validate_r_method(Instruction * inst) {
         return 0;
     }
     
-    if (rec_validate_r_params(inst->params) == 0) {
+    Param * param = inst->params;
+    
+    if (param->type != 'R' && param->next->type != 'R' && (param->next->next->type != 'R' && param->next->next->type != 'M')) {
         printf("Parametrização incorreta da instrução (%s)", inst->word);
         return 0;
     }
@@ -85,6 +99,8 @@ int execute_r_method(Instruction ** inst, int ** regs, Memory ** memory) {
 }
 
 int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory) {
+    printf("Executando instrução I | %s\n", (*inst)->word);
+    
     int reg1 = atoi((*inst)->params->param + 1);
     
     if (strcmp((*inst)->method->method, "addi") == 0) {
@@ -93,19 +109,24 @@ int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory) {
         
         (*regs)[reg1] = (*regs)[reg2] + num;
         
+        printf("reg%i = reg%i + %i\n\n", reg1, reg2, num);
         return 1;
     }
     
-    char * tag = (*inst)->params->next->param;
-    Address ** a = get_address(memory, (*memory)->head, tag);
+    int tag = get_tag((*inst)->params->next->param, (*regs));
+    Address * a = get_address(memory, (*memory)->head, tag);
     
     if (strcmp((*inst)->method->method, "lw") == 0) {
-        regs[reg1] = (*a)->value;
+        (*regs)[reg1] = a->value;
+        
+        printf("reg%i = %i (Endereço %i)\n\n", reg1, a->value, a->tag);
         return 1;
     }
     
     if (strcmp((*inst)->method->method, "sw") == 0) {
-        (*a)->value = regs[reg1];
+        a->value = (*regs)[reg1];
+        
+        printf("(Endereço %i) = reg%i = %i\n\n", a->tag, reg1, a->value);
         return 1;
     }
     

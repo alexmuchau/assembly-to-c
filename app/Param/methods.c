@@ -7,7 +7,7 @@ Param * construct_param(char * param, Param * before) {
     Param * p = malloc(sizeof(Param));
     
     int len = strlen(param), count = 0;
-    while((isspace(param[len - count - 1])) ) count++; // trim
+    while((isspace(param[len - count - 1]))) count++; // trim
     
     if (count > 0) {
         param[len - count] = '\0';
@@ -18,7 +18,11 @@ Param * construct_param(char * param, Param * before) {
     if (param[0] == '$') {
         p->type = 'R';
     } else if (isdigit(param[0])) {
-        p->type = 'N';
+        // VERIFICAÇÃO SE É APENAS NÚMERO (23) OU ACESSO A MEMÓRIA 0(0X10)
+        count = 0;
+        while(param[count] != '(' && param[count] != '\0') count++;
+        
+        p->type = count == len ? 'N' : 'M';
     } else {
         p->type = 'L';
     }

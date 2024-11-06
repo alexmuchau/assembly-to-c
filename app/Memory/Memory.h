@@ -8,7 +8,7 @@ typedef struct Address Address;
 
 struct Address {
     int value;
-    char * tag;
+    int tag;
     
     Address * next;
 };

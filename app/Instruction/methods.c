@@ -48,22 +48,21 @@ Instruction * inst_reader() {
 }
 
 int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
-    int length = strlen((*inst)->word);
-    (*inst)->word = realloc((*inst)->word, length + 1);
-    
-    if (length < 5) {
-        printf("Instrução inválida, não contém tamanho adequado");
-        return 0;
-    }
-    
+    int total_length = 0;
+    int len = 0;
     char * word = (*inst)->word;
-    int char_length = 0;
+    
+    // trim init space
+    while (isspace(word[len])) len++;
+    
+    word += len;
+    len = 0;
     
     // EXTRACTING METHOD
-    while (!isspace(word[char_length])) char_length++;
+    while (!isspace(word[len])) {len++; total_length++;}
     
-    char * method_str = malloc(sizeof(char)*char_length);
-    strncpy(method_str, word, char_length);
+    char * method_str = malloc(sizeof(char)*len);
+    strncpy(method_str, word, len);
     
     (*inst)->method = find_method(method_str, methods);
     
@@ -72,14 +71,27 @@ int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
         return 0;
     }
     
-    while (isspace(word[char_length])) char_length++;
+    while (isspace(word[len])) len++;
     
-    word += char_length;
+    word += len;
+    
+    (*inst)->word = realloc((*inst)->word, sizeof(char)*(len+strlen(word)));
     
     get_params(&(*inst), word);
     (*inst)->method->validate_method((*inst));
-    
     return 1;
+}
+
+void execute_instruction(Instruction ** inst, int ** regs, Memory ** memory, Method * methods[9]) {    
+    if (get_and_validate_instructions(inst, methods) == 0) {
+        printf("Instrução incorreta!");
+        return;
+    }
+    
+    (*inst)->method->execute_method(inst, regs, memory);
+    
+    if (!(*inst)->next) return;
+    execute_instruction(&((*inst)->next), regs, memory, methods);
 }
 
 #endif

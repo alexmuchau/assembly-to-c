@@ -3,7 +3,7 @@
 
 #include "methods.h"
 
-Address * construct_address(char * tag, int value) {
+Address * construct_address(int tag, int value) {
     Address * a = malloc(sizeof(Address));
     a->value = value;
     a->tag = tag;
@@ -17,17 +17,17 @@ Memory * construct_memory() {
     m->qtd_address = 0;
 }
 
-Address ** get_address(Memory ** m, Address * a, char * tag) {
-    if (a->tag == tag) {
-        return &a;
-    }
-    
+Address * get_address(Memory ** m, Address * a, int tag) {
     if (!a) {
         add_address(m, construct_address(tag, 0));
-        return &((*m)->tail);
+        return (*m)->tail;
     }
     
-    return get_address_value(m, a->next, tag);
+    if (a->tag == tag) {
+        return a;
+    }
+    
+    return get_address(m, a->next, tag);
 }
 
 void add_address(Memory ** m, Address * a) {
