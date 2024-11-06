@@ -2,10 +2,13 @@
 #include "tools/tools.h"
 #include "Method/methods.h"
 #include "Memory/methods.h"
+#include "Label/methods.h"
+#include "Instruction/methods.h"
 
 int main() {
     int * regs = malloc(sizeof(int)*32);
     Memory * memory = construct_memory();
+    Label * label = construct_label("MAIN:", construct_inst());
     
     regs[1] = 0x12;
     regs[2] = 8;
@@ -25,6 +28,6 @@ int main() {
     
     // while (opt != 0) {
         // opt = init_menu();
-        switch_case(&regs, &memory, methods, opt);
+        switch_case(&regs, &memory, &label, methods, opt);
     // }
 }

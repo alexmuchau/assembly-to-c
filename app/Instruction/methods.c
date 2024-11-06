@@ -66,11 +66,6 @@ int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
     
     (*inst)->method = find_method(method_str, methods);
     
-    if (!(*inst)->method) {
-        printf("ERROR ON FINDING METHOD\n");
-        return 0;
-    }
-    
     while (isspace(word[len])) len++;
     
     word += len;
@@ -78,20 +73,32 @@ int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
     (*inst)->word = realloc((*inst)->word, sizeof(char)*(len+strlen(word)));
     
     get_params(&(*inst), word);
+    
+    // É LABEL
+    if (!(*inst)->method) return 1;
+    
     (*inst)->method->validate_method((*inst));
     return 1;
 }
 
-void execute_instruction(Instruction ** inst, int ** regs, Memory ** memory, Method * methods[9]) {    
+void execute_instruction(Instruction ** inst, int ** regs, Memory ** memory, Label ** label, Method * methods[9]) {    
     if (get_and_validate_instructions(inst, methods) == 0) {
         printf("Instrução incorreta!");
         return;
     }
     
-    (*inst)->method->execute_method(inst, regs, memory);
+    if (!(*inst)->method) {
+        printf("Label: %s", (*inst)->params->param);
+        
+        create_new_label((*inst)->params->param, (*inst), label);
+        
+        return;
+    }
+    
+    (*inst)->method->execute_method(inst, regs, memory, label);
     
     if (!(*inst)->next) return;
-    execute_instruction(&((*inst)->next), regs, memory, methods);
+    execute_instruction(&((*inst)->next), regs, memory, label, methods);
 }
 
 #endif

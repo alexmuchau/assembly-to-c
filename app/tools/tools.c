@@ -26,26 +26,31 @@ int init_menu() {
     return opt;
 }
 
-void switch_case(int ** regs, Memory ** memory, Method * methods[9], int opt) {
+void switch_case(int ** regs, Memory ** memory, Label ** label, Method * methods[9], int opt) {
     switch (opt) {
         case 1:
-            // Instruction * instruction = inst_reader();
-            char * word = "addi $2, $0, 23";
+            Instruction * instruction = inst_reader();
+            char * word = "TESTE:";
             Instruction * instruction = malloc(sizeof(Instruction));
             instruction->word = malloc(sizeof(char)*32);
             strcpy(instruction->word, word);
+            instruction->next = NULL;
+            // char * word = "addi $2, $0, 23";
+            // Instruction * instruction = malloc(sizeof(Instruction));
+            // instruction->word = malloc(sizeof(char)*32);
+            // strcpy(instruction->word, word);
             
-            word = "sw $2, 0($2)";
-            instruction->next = malloc(sizeof(Instruction));
-            instruction->next->word = malloc(sizeof(char)*32);
-            strcpy(instruction->next->word, word);
+            // word = "sw $2, 0($2)";
+            // instruction->next = malloc(sizeof(Instruction));
+            // instruction->next->word = malloc(sizeof(char)*32);
+            // strcpy(instruction->next->word, word);
             
-            word = "lw $3, 0($2)";
-            instruction->next->next = malloc(sizeof(Instruction));
-            instruction->next->next->word = malloc(sizeof(char)*32);
-            strcpy(instruction->next->next->word, word);
+            // word = "lw $3, 0($2)";
+            // instruction->next->next = malloc(sizeof(Instruction));
+            // instruction->next->next->word = malloc(sizeof(char)*32);
+            // strcpy(instruction->next->next->word, word);
             
-            execute_instruction(&instruction, regs, memory, methods);
+            execute_instruction(&instruction, regs, memory, label, methods);
             break;
         case 2:
             printf("Opção 2");

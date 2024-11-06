@@ -2,6 +2,7 @@
 #define METH_M_LIB
 
 #include "methods.h"
+#include "../Label/methods.h"
 
 int get_tag(char * tag, int * regs) {
     int len = 0;
@@ -66,10 +67,20 @@ int validate_i_method(Instruction * inst) {
 }
 
 int validate_j_method(Instruction * inst) {
-    // printf("Validando método J com a instrução %s e método %s\n", params, method->method);
+    printf("Validando instrução I | %s\n", inst->word);
+    
+    if (inst->params_qtd > 1) return 0;
+    
+    if (strcmp(inst->method->method, "j") == 0 || strcmp(inst->method->method, "jal") == 0) {
+        if (inst->params->type != 'L') return 0;
+    } else {
+        if (inst->params->type != 'R') return 0;
+    }
+    
+    return 1;
 }
 
-int execute_r_method(Instruction ** inst, int ** regs, Memory ** memory) {
+int execute_r_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     // +1 por conta do $
     int dest_reg = atoi((*inst)->params->param + 1);
     int op1_reg = atoi((*inst)->params->next->param + 1);
@@ -98,7 +109,7 @@ int execute_r_method(Instruction ** inst, int ** regs, Memory ** memory) {
     return 0;
 }
 
-int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory) {
+int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     printf("Executando instrução I | %s\n", (*inst)->word);
     
     int reg1 = atoi((*inst)->params->param + 1);
@@ -133,6 +144,10 @@ int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory) {
     return 0;
 }
 
+int execute_j_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+    printf("Executando instrução J | %s\n", (*inst)->word);
+}
+
 Method * construct_method(char * method, char type) {
     Method * m = malloc(sizeof(Method));
     
@@ -148,6 +163,7 @@ Method * construct_method(char * method, char type) {
             m->execute_method = execute_i_method;
         } else if (type == 'J') {
             m->validate_method = validate_j_method;
+            m->execute_method = execute_j_method;
         }
     }
     
