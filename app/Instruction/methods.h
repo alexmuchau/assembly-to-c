@@ -8,5 +8,5 @@
 
 Instruction * construct_inst();
 Instruction * inst_reader();
-int get_and_validate_instructions(Instruction ** instruction, Method * methods[9]);
-void execute_instruction(Instruction ** inst, int ** regs, Memory ** memory, Label ** label, Method * methods[9]);
+int validate_instruction(Instruction ** inst, Label ** label, Method * methods[9]);
+Instruction * execute_instructions(Instruction ** inst, int ** regs, Memory ** memory, Label ** label);

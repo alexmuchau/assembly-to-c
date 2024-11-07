@@ -47,7 +47,7 @@ Instruction * inst_reader() {
     return head;
 }
 
-int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
+int deconstruction_instructions(Instruction ** inst, Method * methods[9]) {
     int total_length = 0;
     int len = 0;
     char * word = (*inst)->word;
@@ -56,22 +56,23 @@ int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
     while (isspace(word[len]) && word[len] != '\0') len++;
     
     word += len;
-    len = 0;
     
     // EXTRACTING METHOD
+    len = 0;
     while (!isspace(word[len]) && word[len] != '\0') {len++; total_length++;}
     
     char * method_str = malloc(sizeof(char)*len);
     strncpy(method_str, word, len);
     
-    (*inst)->method = find_method(method_str, methods);
+    if (word[len] != '\0') {
+        word += len;
+        (*inst)->method = find_method(method_str, methods);
+        
+        len = 0;
+        while (isspace(word[len]) && word[len] != '\0') len++;
+    }
     
-    len = 0;
-    while (isspace(word[len])) len++;
-    
-    word += len;
-    
-    (*inst)->word = realloc((*inst)->word, sizeof(char)*(len+strlen(word)));
+    (*inst)->word = realloc((*inst)->word, sizeof(char)*(strlen(word)));
     
     get_params(&(*inst), word);
     
@@ -82,25 +83,35 @@ int get_and_validate_instructions(Instruction ** inst, Method * methods[9]) {
     return 1;
 }
 
-void execute_instruction(Instruction ** inst, int ** regs, Memory ** memory, Label ** label, Method * methods[9]) {    
-    if (get_and_validate_instructions(inst, methods) == 0) {
+int validate_instruction(Instruction ** inst, Label ** label, Method * methods[9]) {    
+    if (!(*inst)) return 1;
+    
+    if (deconstruction_instructions(inst, methods) == 0) {
         printf("Instrução incorreta!");
-        return;
+        return 0;
     }
     
     // Caso seja label
     if (!(*inst)->method) {
-        printf("Label: %s", (*inst)->params->param);
+        char * label_value = clean_label((*inst)->params->param);
         
-        create_new_label((*inst)->params->param, (*inst), (*label));
-        
-        return;
+        if (label_value) create_new_label(label_value, (*inst), (*label));
     }
     
-    (*inst)->method->execute_method(inst, regs, memory, label);
+    return validate_instruction(&((*inst)->next), label, methods);
+}
+
+Instruction * execute_instructions(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+    if (!(*inst)) return NULL;
     
-    if (!(*inst)->next) return;
-    execute_instruction(&((*inst)->next), regs, memory, label, methods);
+    Instruction * next_inst;
+    if ((*inst)->method) {
+        next_inst = (*inst)->method->execute_method(inst, regs, memory, label);
+    } else {
+        next_inst = (*inst)->next;
+    }
+    
+    execute_instructions(&(next_inst), regs, memory, label);
 }
 
 #endif

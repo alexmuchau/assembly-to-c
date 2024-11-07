@@ -10,6 +10,7 @@
 - addi
 - lw
 - sw
+- beq
 
 ### J
 - j
