@@ -12,7 +12,7 @@ struct Method {
     char * method;
     char type;
     int (*validate_method)(Instruction * inst);
-    int (*execute_method)(Instruction ** inst, int ** regs, Memory ** memory, Label ** label);
+    Instruction * (*execute_method)(Instruction ** inst, int ** regs, Memory ** memory, Label ** label);
 };
 
 #endif

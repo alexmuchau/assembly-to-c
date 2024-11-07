@@ -80,7 +80,7 @@ int validate_j_method(Instruction * inst) {
     return 1;
 }
 
-int execute_r_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_r_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     // +1 por conta do $
     int dest_reg = atoi((*inst)->params->param + 1);
     int op1_reg = atoi((*inst)->params->next->param + 1);
@@ -109,7 +109,7 @@ int execute_r_method(Instruction ** inst, int ** regs, Memory ** memory, Label *
     return 0;
 }
 
-int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_i_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     printf("Executando instrução I | %s\n", (*inst)->word);
     
     int reg1 = atoi((*inst)->params->param + 1);
@@ -144,8 +144,20 @@ int execute_i_method(Instruction ** inst, int ** regs, Memory ** memory, Label *
     return 0;
 }
 
-int execute_j_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_j_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     printf("Executando instrução J | %s\n", (*inst)->word);
+    
+    if (strcmp((*inst)->method->method, 'jr') == 0) {
+        return 1;
+    }
+    
+    Instruction * jump_inst = get_inst_on_labels((*inst)->params->param, (*label));
+    
+    if (strcmp((*inst)->method->method, 'jal') == 0) {
+        return jump_inst;
+    }
+    
+    return jump_inst;
 }
 
 Method * construct_method(char * method, char type) {
