@@ -10,21 +10,22 @@ int verify_inst(char * inst) {
     if (last_char == '|') return 1;
 }
 
-Instruction * construct_inst() {
+Instruction * construct_inst(Instruction * before) {
     Instruction * inst = malloc(sizeof(Instruction));
     
     inst->word = NULL;
     inst->next = NULL;
+    inst->before = before;
     inst->params = NULL;
     inst->params_qtd = 0;
     
     return inst;
 }
 
-Instruction * inst_reader() {
+Instruction * inst_reader(int init_address) {
     printf("\n\nDIGITE SEU CÓDIGO ASSEMBLY. (o último caractere deve ser um '|')\n\n");
     
-    Instruction * head = construct_inst();
+    Instruction * head = construct_inst(NULL);
     
     Instruction * actual_inst = head;
     size_t len = 0;
@@ -35,7 +36,9 @@ Instruction * inst_reader() {
         while ((read = getline(&line, &len, stdin)) != -1) {
             if (read > 0) {
                 actual_inst->word = line;
-                actual_inst->next = construct_inst();
+                actual_inst->next = construct_inst(actual_inst);
+                actual_inst->address = init_address = init_address + 4;
+                
                 actual_inst = actual_inst->next;
                 break;
             }
@@ -47,7 +50,7 @@ Instruction * inst_reader() {
     return head;
 }
 
-int deconstruction_instructions(Instruction ** inst, Method * methods[9]) {
+int deconstruction_instructions(Instruction ** inst, Method * methods[11]) {
     int total_length = 0;
     int len = 0;
     char * word = (*inst)->word;
@@ -83,7 +86,7 @@ int deconstruction_instructions(Instruction ** inst, Method * methods[9]) {
     return 1;
 }
 
-int validate_instruction(Instruction ** inst, Label ** label, Method * methods[9]) {    
+int validate_instruction(Instruction ** inst, Label ** label, Method * methods[11]) {    
     if (!(*inst)) return 1;
     
     if (deconstruction_instructions(inst, methods) == 0) {
@@ -111,7 +114,19 @@ Instruction * execute_instructions(Instruction ** inst, int ** regs, Memory ** m
         next_inst = (*inst)->next;
     }
     
-    execute_instructions(&(next_inst), regs, memory, label);
+    return execute_instructions(&(next_inst), regs, memory, label);
+}
+
+Instruction * find_inst_front(int address_to_search, Instruction * inst){
+    if (address_to_search == inst->address) return inst;
+    
+    return find_inst_front(address_to_search, inst->next);
+}
+
+Instruction * find_inst_back(int address_to_search, Instruction * inst){
+    if (address_to_search == inst->address) return inst;
+    
+    return find_inst_back(address_to_search, inst->before);
 }
 
 #endif

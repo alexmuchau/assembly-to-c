@@ -5,7 +5,6 @@ struct Label;
 typedef struct Label Label;
 
 #include "../Instruction/Instruction.h"
-
 struct Label {
     char * value;
     Instruction * inst;

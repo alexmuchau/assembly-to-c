@@ -160,14 +160,27 @@ Instruction * execute_j_method(Instruction ** inst, int ** regs, Memory ** memor
     printf("Executando instrução J | %s\n", (*inst)->word);
     
     if (strcmp((*inst)->method->method, "jr") == 0) {
-        return (*inst)->next;
+        int reg1_value = (*regs)[(atoi((*inst)->params->param))];
+        
+        if (reg1_value % 4 != 0) return NULL;
+        
+        Instruction * next_inst;
+        if (reg1_value >= (*inst)->address) next_inst = find_inst_front(reg1_value, (*inst));
+        else next_inst = find_inst_back(reg1_value, (*inst));
+        
+        printf("Next inst: %s\n\n", next_inst->word);
+        
+        return next_inst;
     }
     
     Instruction * jump_inst = get_inst_on_labels((*inst)->params->param, (*label));
     
     if (strcmp((*inst)->method->method, "jal") == 0) {
-        return jump_inst->next;
+        Label * ra_label = create_new_label("ra", (*inst), (*label));
+        ra_label->inst = (*inst);
     }
+    
+    return jump_inst->next;
     
     return jump_inst->next;
 }
@@ -194,8 +207,8 @@ Method * construct_method(char * method, char type) {
     return m;
 }
 
-Method * find_method(char * method, Method * methods[9]) {
-    // printf("Encontrando método %s com tamanho %li\n", method, strlen(method));
+Method * find_method(char * method, Method * methods[11]) {
+    printf("Encontrando método %s|\n", method);
     for (int i = 0; i < 9; i++) {
         if (strcmp(methods[i]->method, method) == 0) {
             return methods[i];

@@ -10,7 +10,9 @@ typedef struct Instruction Instruction;
 struct Instruction {
     char * word;
     Instruction * next;
-
+    Instruction * before;
+    int address;
+    
     Method * method;
     Param * params;
     int params_qtd;

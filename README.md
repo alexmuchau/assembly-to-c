@@ -10,7 +10,7 @@
 ### R
 - add
 - sub
-- sll 
+- sll
 
 ### I
 - addi

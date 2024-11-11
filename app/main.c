@@ -8,12 +8,12 @@
 int main() {
     int * regs = malloc(sizeof(int)*32);
     Memory * memory = construct_memory();
-    Label * label = construct_label("MAIN:", construct_inst());
+    Label * label = construct_label("MAIN:", construct_inst(NULL));
     
     regs[1] = 12;
     regs[2] = 8;
     
-    Method * methods[10] = {
+    Method * methods[11] = {
         construct_method("add", 'R'),
         construct_method("sub", 'R'),
         construct_method("sll", 'R'),
@@ -22,8 +22,8 @@ int main() {
         construct_method("sw", 'I'),
         construct_method("beq", 'I'),
         construct_method("j", 'J'),
-        construct_method("jal", 'J'),
         construct_method("jr", 'J'),
+        construct_method("jal", 'J'),
     };
     int opt = 1;
     
