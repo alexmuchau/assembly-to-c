@@ -50,7 +50,7 @@ Instruction * inst_reader(int init_address) {
     return head;
 }
 
-int deconstruction_instructions(Instruction ** inst, Method * methods[11]) {
+int lexical_verification(Instruction ** inst, Method * methods[11]) {
     int total_length = 0;
     int len = 0;
     char * word = (*inst)->word;
@@ -79,54 +79,66 @@ int deconstruction_instructions(Instruction ** inst, Method * methods[11]) {
     
     get_params(&(*inst), word);
     
-    // É LABEL
-    if (!(*inst)->method) return 1;
-    
-    (*inst)->method->validate_method((*inst));
     return 1;
 }
 
 int validate_instruction(Instruction ** inst, Label ** label, Method * methods[11]) {    
     if (!(*inst)) return 1;
     
-    if (deconstruction_instructions(inst, methods) == 0) {
-        printf("Instrução incorreta!");
+    if (lexical_verification(inst, methods) == 0) {
+        printf("Erro na verificação léxica da instrução | %s", (*inst)->word);
         return 0;
     }
     
-    // Caso seja label
+    // Caso seja LABEL
     if (!(*inst)->method) {
         char * label_value = clean_label((*inst)->params->param);
-        
         if (label_value) create_new_label(label_value, (*inst), (*label));
+        
+        return validate_instruction(&((*inst)->next), label, methods);
+    }
+    
+    if ((*inst)->method->semantical_verification((*inst)) == 0) {
+        printf("Erro na verificação semântica da instrução | %s", (*inst)->word);
+        return 0;
     }
     
     return validate_instruction(&((*inst)->next), label, methods);
 }
 
 Instruction * execute_instructions(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
-    if (!(*inst)) return NULL;
-    
     Instruction * next_inst;
     if ((*inst)->method) {
-        next_inst = (*inst)->method->execute_method(inst, regs, memory, label);
+        next_inst = (*inst)->method->execute(inst, regs, memory, label);
     } else {
         next_inst = (*inst)->next;
     }
     
+    if (!(next_inst)) return (*inst);
     return execute_instructions(&(next_inst), regs, memory, label);
 }
 
 Instruction * find_inst_front(int address_to_search, Instruction * inst){
+    if (!inst) return NULL;
+    
     if (address_to_search == inst->address) return inst;
     
     return find_inst_front(address_to_search, inst->next);
 }
 
 Instruction * find_inst_back(int address_to_search, Instruction * inst){
+    if (!inst) return NULL;
+    
     if (address_to_search == inst->address) return inst;
     
     return find_inst_back(address_to_search, inst->before);
+}
+
+void print_code(Instruction * inst) {
+    if (!inst) return;
+    
+    print_code(inst->before);
+    printf("%s\n", inst->word);
 }
 
 #endif

@@ -13,3 +13,4 @@ Instruction * execute_instructions(Instruction ** inst, int ** regs, Memory ** m
 
 Instruction * find_inst_front(int address_to_search, Instruction * inst);
 Instruction * find_inst_back(int address_to_search, Instruction * inst);
+void print_code(Instruction * inst);

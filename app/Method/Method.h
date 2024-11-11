@@ -11,8 +11,8 @@ typedef struct Method Method;
 struct Method {
     char * method;
     char type;
-    int (*validate_method)(Instruction * inst);
-    Instruction * (*execute_method)(Instruction ** inst, int ** regs, Memory ** memory, Label ** label);
+    int (*semantical_verification)(Instruction * inst);
+    Instruction * (*execute)(Instruction ** inst, int ** regs, Memory ** memory, Label ** label);
 };
 
 #endif

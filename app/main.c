@@ -27,8 +27,8 @@ int main() {
     };
     int opt = 1;
     
-    // while (opt != 0) {
-        // opt = init_menu();
+    while (opt != 0) {
+        opt = init_menu();
         switch_case(&regs, &memory, &label, methods, opt);
-    // }
+    }
 }

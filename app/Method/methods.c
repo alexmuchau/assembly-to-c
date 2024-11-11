@@ -26,7 +26,7 @@ int get_tag(char * tag, int * regs) {
     return reg_value + shift_num;
 }
 
-int validate_r_method(Instruction * inst) {
+int semantical_verification_r(Instruction * inst) {
     // Caso o tamanho da string parâmetro for menor que o mínimo de 2 parâmetros mais o espaço
     printf("Validando instrução R | %s\n", inst->word);
     
@@ -43,7 +43,7 @@ int validate_r_method(Instruction * inst) {
     }
 }
 
-int validate_i_method(Instruction * inst) {
+int semantical_verification_i(Instruction * inst) {
     printf("Validando instrução I | %s\n", inst->word);
     
     if (inst->params_qtd < 2 || inst->params_qtd > 3) {
@@ -65,7 +65,7 @@ int validate_i_method(Instruction * inst) {
     return 0;
 }
 
-int validate_j_method(Instruction * inst) {
+int semantical_verification_j(Instruction * inst) {
     printf("Validando instrução J | %s\n", inst->word);
     
     if (inst->params_qtd > 1) return 0;
@@ -79,7 +79,7 @@ int validate_j_method(Instruction * inst) {
     return 1;
 }
 
-Instruction * execute_r_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_r(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     // +1 por conta do $
     int dest_reg = atoi((*inst)->params->param + 1);
     int op1_reg = atoi((*inst)->params->next->param + 1);
@@ -108,7 +108,7 @@ Instruction * execute_r_method(Instruction ** inst, int ** regs, Memory ** memor
     return NULL;
 }
 
-Instruction * execute_i_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_i(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     printf("Executando instrução I | %s\n", (*inst)->word);
     
     int reg1 = atoi((*inst)->params->param + 1);
@@ -156,7 +156,7 @@ Instruction * execute_i_method(Instruction ** inst, int ** regs, Memory ** memor
     return NULL;
 }
 
-Instruction * execute_j_method(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_j(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
     printf("Executando instrução J | %s\n", (*inst)->word);
     
     if (strcmp((*inst)->method->method, "jr") == 0) {
@@ -193,14 +193,14 @@ Method * construct_method(char * method, char type) {
         m->type = type;
         
         if (type == 'R') {
-            m->validate_method = validate_r_method;
-            m->execute_method = execute_r_method;
+            m->semantical_verification = semantical_verification_r;
+            m->execute = execute_r;
         } else if (type == 'I') {
-            m->validate_method = validate_i_method;
-            m->execute_method = execute_i_method;
+            m->semantical_verification = semantical_verification_i;
+            m->execute = execute_i;
         } else if (type == 'J') {
-            m->validate_method = validate_j_method;
-            m->execute_method = execute_j_method;
+            m->semantical_verification = semantical_verification_j;
+            m->execute = execute_j;
         }
     }
     
@@ -208,13 +208,11 @@ Method * construct_method(char * method, char type) {
 }
 
 Method * find_method(char * method, Method * methods[11]) {
-    printf("Encontrando método %s|\n", method);
     for (int i = 0; i < 9; i++) {
         if (strcmp(methods[i]->method, method) == 0) {
             return methods[i];
         }
     }
-    // printf("Falha para encontrar método\n");
     
     return NULL;
 }
