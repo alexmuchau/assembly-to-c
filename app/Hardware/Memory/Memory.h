@@ -1,10 +1,11 @@
 #ifndef MEM_LIB
 #define MEM_LIB
 
-#include "../tools/libs.h"
-
 struct Address;
 typedef struct Address Address;
+
+struct Memory;
+typedef struct Memory Memory;
 
 struct Address {
     int value;
@@ -12,9 +13,6 @@ struct Address {
     
     Address * next;
 };
-
-struct Memory;
-typedef struct Memory Memory;
 
 struct Memory {
     Address * head;

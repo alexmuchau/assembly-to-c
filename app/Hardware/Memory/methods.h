@@ -1,3 +1,4 @@
+#include "../../tools/libs.h"
 #include "Memory.h"
 
 Memory * construct_memory();

@@ -2,7 +2,6 @@
 #define METH_M_LIB
 
 #include "methods.h"
-#include "../Label/methods.h"
 
 int get_tag(char * tag, int * regs) {
     int len = 0;
@@ -23,7 +22,7 @@ int get_tag(char * tag, int * regs) {
     
     free(c);
     
-    return reg_value + shift_num;
+    return ULA(reg_value, shift_num, "+");
 }
 
 int semantical_verification_r(Instruction * inst) {
@@ -79,88 +78,98 @@ int semantical_verification_j(Instruction * inst) {
     return 1;
 }
 
-Instruction * execute_r(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_r(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
     // +1 por conta do $
     int dest_reg = atoi((*inst)->params->param + 1);
-    int op1_reg = atoi((*inst)->params->next->param + 1);
+    int reg1 = atoi((*inst)->params->next->param + 1);
+    int reg2 = atoi((*inst)->params->next->next->param + 1);
+    
+    int reg1_value = rb->get_reg_value(reg1, rb->regs);
+    int reg2_value = rb->get_reg_value(reg2, rb->regs);
     
     if (strcmp((*inst)->method->method, "sll") == 0) {
-        int op2 = atoi((*inst)->params->next->next->param);
-        printf("Executando ssl com:\ndest =%i\nreg=%i\nnum=%i", dest_reg, op1_reg, op2);
+        int value = ULA(reg1_value, reg2_value, ">>");
+        rb->write_back(dest_reg, value, &(rb->regs));
         
-        (*regs)[dest_reg] = (*regs)[op1_reg] << op2;
         return (*inst)->next;
     }
     
-    int op2_reg = atoi((*inst)->params->next->next->param + 1);
-    printf("Executando %s com:\ndest=%i\nreg1=%i\nreg2=%i", (*inst)->method->method, dest_reg, op1_reg, op2_reg);
-    
     if (strcmp((*inst)->method->method, "add") == 0) {
-        (*regs)[dest_reg] = (*regs)[op1_reg] - (*regs)[op2_reg];
+        int value = ULA(reg1_value, reg2_value, "+");
+        rb->write_back(dest_reg, value, &(rb->regs));
+        
         return (*inst)->next;
     }
     
     if (strcmp((*inst)->method->method, "sub") == 0) {
-        (*regs)[dest_reg] = (*regs)[op1_reg] - (*regs)[op2_reg];
+        int value = ULA(reg1_value, reg2_value, "-");
+        rb->write_back(dest_reg, value, &(rb->regs));
+        
         return (*inst)->next;
     }
     
     return NULL;
 }
 
-Instruction * execute_i(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_i(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
     printf("Executando instrução I | %s\n", (*inst)->word);
     
-    int reg1 = atoi((*inst)->params->param + 1);
+    int dest_reg = atoi((*inst)->params->param + 1);
     
     if (strcmp((*inst)->method->method, "addi") == 0) {
-        int reg2 = atoi((*inst)->params->next->param + 1);
+        int reg2 = rb->get_reg_value(atoi((*inst)->params->next->param + 1), rb->regs);
         int num = atoi((*inst)->params->next->next->param);
         
-        (*regs)[reg1] = (*regs)[reg2] + num;
+        int value = ULA(reg2, num, "+");
+        rb->write_back(dest_reg, value, &(rb->regs));
         
-        printf("reg%i = reg%i + %i\n\n", reg1, reg2, num);
+        printf("reg%i = reg%i + %i\n\n", dest_reg, reg2, num);
         return (*inst)->next;
     }
     
     if (strcmp((*inst)->method->method, "beq") == 0) {
-        int reg2 = atoi((*inst)->params->next->param + 1);
+        int reg1 = rb->get_reg_value(dest_reg, rb->regs);
+        int reg2 = rb->get_reg_value(atoi((*inst)->params->next->param + 1), rb->regs);
         
-        if ((*regs)[reg1] == (*regs)[reg2]) {
-            printf("(reg%i) %i == %i (reg%i) = True\n\n", reg1, (*regs)[reg1], (*regs)[reg2], reg2);
+        int is_equal = ULA(reg1, reg2, "=");
+        
+        if (is_equal == 1) {
+            printf("%i == %i = True\n\n", reg1, reg2);
             char * label_to_search = (*inst)->params->next->next->param;
+            
             return get_inst_on_labels(label_to_search, (*label));
         }
         
-        printf("(reg%i) %i == %i (reg%i) = False\n\n", reg1, (*regs)[reg1], (*regs)[reg2], reg2);
+        printf("%i == %i = False\n\n", reg1, reg2);
         return (*inst)->next;
     }
     
-    int tag = get_tag((*inst)->params->next->param, (*regs));
+    int tag = get_tag((*inst)->params->next->param, rb->regs);
     Address * a = get_address(memory, (*memory)->head, tag);
     
     if (strcmp((*inst)->method->method, "lw") == 0) {
-        (*regs)[reg1] = a->value;
+        rb->write_back(dest_reg, a->value, &(rb->regs));
         
-        printf("reg%i = %i (Endereço %i)\n\n", reg1, a->value, a->tag);
+        printf("reg%i = %i (Endereço %i)\n\n", dest_reg, a->value, a->tag);
         return (*inst)->next;
     }
     
     if (strcmp((*inst)->method->method, "sw") == 0) {
-        a->value = (*regs)[reg1];
+        int dest_reg_value = rb->get_reg_value(dest_reg, rb->regs);
+        a->value = dest_reg_value;
         
-        printf("(Endereço %i) = reg%i = %i\n\n", a->tag, reg1, a->value);
+        printf("(Endereço %i) = reg%i = %i\n\n", a->tag, dest_reg, a->value);
         return (*inst)->next;
     }
     
     return NULL;
 }
 
-Instruction * execute_j(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_j(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
     printf("Executando instrução J | %s\n", (*inst)->word);
     
     if (strcmp((*inst)->method->method, "jr") == 0) {
-        int reg1_value = (*regs)[(atoi((*inst)->params->param))];
+        int reg1_value = rb->get_reg_value((atoi((*inst)->params->param)), rb->regs);
         
         if (reg1_value % 4 != 0) return NULL;
         

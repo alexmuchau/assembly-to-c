@@ -1,9 +1,6 @@
 #ifndef TOOLS_LIB
 #define TOOLS_LIB
 
-#include <termios.h>
-#include <unistd.h>
-
 #include "tools.h"
 
 int print_header_spacer() {
@@ -68,7 +65,7 @@ Instruction * construct_example_instruction() {
     return instruction;
 }
 
-void switch_case(int ** regs, Memory ** memory, Label ** label, Method * methods[11], int opt) {
+void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], int opt) {
     switch (opt) {
         case 1:
             Instruction * inst;
@@ -84,7 +81,7 @@ void switch_case(int ** regs, Memory ** memory, Label ** label, Method * methods
             printf("\nVALIDAÇÃO CONCLUÍDA");
             print_spacer();
             
-            Instruction * last_inst = execute_instructions(&inst, regs, memory, label);
+            Instruction * last_inst = execute_instructions(&inst, rb, memory, label);
             print_spacer();
             
             if (!last_inst) {
@@ -102,7 +99,7 @@ void switch_case(int ** regs, Memory ** memory, Label ** label, Method * methods
             break;
         case 2:
             for (int i = 0 ; i < 32; i++) {
-                printf("reg%i = %i\t\t", i, (*regs)[i]);
+                printf("reg%i = %i\t\t", i, rb->regs[i]);
                 if (i % 3 == 0) printf("\n");
             }
             

@@ -106,16 +106,16 @@ int validate_instruction(Instruction ** inst, Label ** label, Method * methods[1
     return validate_instruction(&((*inst)->next), label, methods);
 }
 
-Instruction * execute_instructions(Instruction ** inst, int ** regs, Memory ** memory, Label ** label) {
+Instruction * execute_instructions(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
     Instruction * next_inst;
     if ((*inst)->method) {
-        next_inst = (*inst)->method->execute(inst, regs, memory, label);
+        next_inst = (*inst)->method->execute(inst, rb, memory, label);
     } else {
         next_inst = (*inst)->next;
     }
     
     if (!(next_inst)) return (*inst);
-    return execute_instructions(&(next_inst), regs, memory, label);
+    return execute_instructions(&(next_inst), rb, memory, label);
 }
 
 Instruction * find_inst_front(int address_to_search, Instruction * inst){
