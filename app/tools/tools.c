@@ -70,8 +70,8 @@ void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * method
         case 1:
             Instruction * inst;
             
-            // inst = (*label)->inst->next = inst_reader((*label)->inst->address);
-            inst = construct_example_instruction();
+            inst = (*label)->inst->next = inst_reader((*label)->inst->address);
+            // inst = construct_example_instruction();
             
             if(validate_instruction(&inst, label, methods) == 0) {
                 return;
