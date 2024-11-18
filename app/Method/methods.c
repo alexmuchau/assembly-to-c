@@ -27,7 +27,7 @@ int get_tag(char * tag, int * regs) {
 
 int semantical_verification_r(Instruction * inst) {
     // Caso o tamanho da string parâmetro for menor que o mínimo de 2 parâmetros mais o espaço
-    printf("Validando instrução R | %s\n", inst->word);
+    // printf("Validando instrução R | %s\n", inst->word);
     
     if (inst->params_qtd != 3) {
         printf("Quantidade incorreta (%i) de parametros da instrução (%s)", inst->params_qtd, inst->word);
@@ -43,7 +43,7 @@ int semantical_verification_r(Instruction * inst) {
 }
 
 int semantical_verification_i(Instruction * inst) {
-    printf("Validando instrução I | %s\n", inst->word);
+    // printf("Validando instrução I | %s\n", inst->word);
     
     if (inst->params_qtd < 2 || inst->params_qtd > 3) {
         printf("Quantidade incorreta (%i) de parametros da instrução (%s)", inst->params_qtd, inst->word);
@@ -65,7 +65,7 @@ int semantical_verification_i(Instruction * inst) {
 }
 
 int semantical_verification_j(Instruction * inst) {
-    printf("Validando instrução J | %s\n", inst->word);
+    // printf("Validando instrução J | %s\n", inst->word);
     
     if (inst->params_qtd > 1) return 0;
     

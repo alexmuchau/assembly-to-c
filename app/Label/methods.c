@@ -60,7 +60,7 @@ Instruction * get_inst_on_labels(char * search_value, Label * head) {
 
 Label * create_new_label(char * value, Instruction * inst, Label * head) {    
     if (!head) {
-        printf("Criando novo LABEL | %s\n", value);
+        // printf("Criando novo LABEL | %s\n", value);
         return construct_label(value, inst);
     }
     

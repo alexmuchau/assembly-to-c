@@ -3,11 +3,13 @@
 
 #include "methods.h"
 
-int verify_inst(char * inst) {
-    int length = strlen(inst);
-    char last_char = inst[length - 2];
+int verify_line(char ** line) {
+    int length = strlen(*(line));
+    if (!line || length < 2) return -1;
     
-    if (last_char == '|') return 1;
+    if ((*line)[length - 2] == '|') return 1;
+    
+    return 0;
 }
 
 Instruction * construct_inst(Instruction * before) {
@@ -15,94 +17,137 @@ Instruction * construct_inst(Instruction * before) {
     
     inst->word = NULL;
     inst->next = NULL;
+    
     inst->before = before;
+    if (before) before->next = inst;
+    
     inst->params = NULL;
     inst->params_qtd = 0;
     
     return inst;
 }
 
+Instruction * find_head(Instruction * i) {
+    if (!i) return NULL;
+    if (!(i->before)) return i;
+    
+    return find_head(i->before);
+}
+
 Instruction * inst_reader(int init_address) {
     printf("\n\nDIGITE SEU CÓDIGO ASSEMBLY. (o último caractere deve ser um '|')\n\n");
     
-    Instruction * head = construct_inst(NULL);
-    
-    Instruction * actual_inst = head;
+    Instruction * actual_inst = NULL;
     size_t len = 0;
     size_t read;
     
-    while (1==1) {
+    int need_to_finish = 0;
+    
+    while (need_to_finish < 1) {
         char * line = malloc(sizeof(char)*32);
         while ((read = getline(&line, &len, stdin)) != -1) {
             if (read > 0) {
-                actual_inst->word = line;
-                actual_inst->next = construct_inst(actual_inst);
+                if (abs(need_to_finish = verify_line(&(line))) == 1) break;
+                
+                char * word = malloc(sizeof(char)*strlen(line));
+                strcpy(word, line);
+                
+                actual_inst = construct_inst(actual_inst);
+                // printf("Construiu -> %s\n", word);
+                
+                actual_inst->word = word;
+                actual_inst->next = NULL;
                 actual_inst->address = init_address = init_address + 4;
                 
-                actual_inst = actual_inst->next;
                 break;
             }
         }
-        
-        if (verify_inst(line) == 1) break;
     }
     
-    return head;
+    return find_head(actual_inst);
 }
 
-int lexical_verification(Instruction ** inst, Method * methods[11]) {
+int lexical_verification(Instruction ** inst, char * word, Method * methods[11]) {
     int total_length = 0;
     int len = 0;
-    char * word = (*inst)->word;
-    
-    // trim init space
-    while (isspace(word[len]) && word[len] != '\0') len++;
-    
-    word += len;
     
     // EXTRACTING METHOD
     len = 0;
     while (!isspace(word[len]) && word[len] != '\0') {len++; total_length++;}
     
-    char * method_str = malloc(sizeof(char)*len);
-    strncpy(method_str, word, len);
+    if (len == 0) return 0;
     
-    if (word[len] != '\0') {
-        word += len;
-        (*inst)->method = find_method(method_str, methods);
+    char * first_arg = malloc(sizeof(char)*len);
+    strncpy(first_arg, word, len);
+    
+    (*inst)->method = find_method(first_arg, methods);
+    
+    if (!(*inst)->method) {
+        if (first_arg[len - 1] == ':') return 1;
         
-        len = 0;
-        while (isspace(word[len]) && word[len] != '\0') len++;
+        return 0;
     }
     
-    (*inst)->word = realloc((*inst)->word, sizeof(char)*(strlen(word)));
+    word += len;
+    len = 0;
+    while (isspace(word[len]) && word[len] != '\0') len++;
     
     get_params(&(*inst), word);
     
     return 1;
 }
 
-int validate_instruction(Instruction ** inst, Label ** label, Method * methods[11]) {    
-    if (!(*inst)) return 1;
+char * trim_word(char * word) {
+    int length = strlen(word);
     
-    if (lexical_verification(inst, methods) == 0) {
-        printf("Erro na verificação léxica da instrução | %s", (*inst)->word);
+    // left trim
+    while (isspace(word[0]) && word[0] != '\0') word++;
+    int char_qtd = strlen(word);
+    
+    while(isspace(word[char_qtd])) char_qtd--;
+    
+    char * trimmed_word = malloc(sizeof(char)*char_qtd);
+    strncpy(trimmed_word, word, char_qtd);
+    
+    return trimmed_word;
+}
+
+int validate_instruction(Instruction ** inst, Label ** label, Method * methods[11]) {    
+    if (!inst) return 0;
+    
+    char * cleaned_word;
+    
+    // printf("<Trim Word> | %s\n", (*inst)->word);
+    if (!(cleaned_word = trim_word((*inst)->word))) {
+        printf("Erro na remoção dos espaços | %s", (*inst)->word);
+        return 0;
+    }
+    
+    printf("<Verificação lexica> | %s\n", cleaned_word);
+    if (lexical_verification(inst, cleaned_word, methods) == 0) {
+        printf("Erro na verificação léxica da instrução | %s\n", cleaned_word);
         return 0;
     }
     
     // Caso seja LABEL
     if (!(*inst)->method) {
-        char * label_value = clean_label((*inst)->params->param);
+        printf("<É LABEL> | %s\n", cleaned_word);
+        
+        char * label_value = clean_label(cleaned_word);
         if (label_value) create_new_label(label_value, (*inst), (*label));
         
+        // printf("\n\n");
+        if (!(*inst)->next) return 1;
         return validate_instruction(&((*inst)->next), label, methods);
     }
     
+    printf("<Verificação semantica> | %s\n", cleaned_word);
     if ((*inst)->method->semantical_verification((*inst)) == 0) {
-        printf("Erro na verificação semântica da instrução | %s", (*inst)->word);
+        printf("Erro na verificação semântica da instrução | %s\n", cleaned_word);
         return 0;
     }
     
+    if (!(*inst)->next) return 1;
     return validate_instruction(&((*inst)->next), label, methods);
 }
 
@@ -114,7 +159,7 @@ Instruction * execute_instructions(Instruction ** inst, RegBase * rb, Memory ** 
         next_inst = (*inst)->next;
     }
     
-    if (!(next_inst)) return (*inst);
+    if (!next_inst) return (*inst);
     return execute_instructions(&(next_inst), rb, memory, label);
 }
 

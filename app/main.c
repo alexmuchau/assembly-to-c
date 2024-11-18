@@ -28,7 +28,7 @@ int main() {
         construct_method("jal", 'J'),
     };
     int opt = 1;
-    
+
     while (opt != 0) {
         opt = init_menu();
         switch_case(reg_base, &memory, &label, methods, opt);

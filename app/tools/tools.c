@@ -13,7 +13,17 @@ int print_spacer() {
 
 int init_menu() {
     print_header_spacer();
-    printf("(1) - Escrever instrução\n(2) - Ver registradores\n(3) - Ver código completo\n(0) - Sair\n");
+    char opts[5][52] = {
+        "Sair",
+        "Interpretador Assembly",
+        "Testar código teste",
+        "Ver registradores",
+        "Ver código completo"
+    };
+    for (int idx, i = 1; i <= 5; i++) {
+        idx = i % 5;
+        printf("%i - %s\n", idx, opts[idx]);
+    }
     print_header_spacer();
     
     int opt = 0;
@@ -66,57 +76,82 @@ Instruction * construct_example_instruction() {
 }
 
 void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], int opt) {
-    switch (opt) {
-        case 1:
-            Instruction * inst;
-            
-            inst = (*label)->inst->next = inst_reader((*label)->inst->address);
-            // inst = construct_example_instruction();
-            
-            if(validate_instruction(&inst, label, methods) == 0) {
-                return;
-            }
-            
-            
-            printf("\nVALIDAÇÃO CONCLUÍDA");
-            print_spacer();
-            
-            Instruction * last_inst = execute_instructions(&inst, rb, memory, label);
-            print_spacer();
-            
-            if (!last_inst) {
-                printf("ERRO NA EXECUÇÃO!\n\n");
-                return;
-            }
-            
-            printf("EXECUÇÃO FINALIZADA!\n\n");
-            Label * last_inst_label = construct_label("LASTINSTRUCTION", last_inst);
-            
-            last_inst_label->next = (*label)->next;
-            
-            (*label) = last_inst_label;
-            
-            break;
-        case 2:
-            for (int i = 0 ; i < 32; i++) {
-                printf("reg%i = %i\t\t", i, rb->regs[i]);
-                if (i % 3 == 0) printf("\n");
-            }
-            
-            printf("\n");
-            break;
-        case 3:
-            print_code((*label)->inst);
-            
-            break;
-        case 0:
-            printf("SAINDO...");
-            
-            break;
-        default:
-            printf("WARNING - Nenhuma opção válida");
-            break;
+    if (opt == 1) {
+        Instruction * inst = inst_reader((*label)->inst->address);
+        // Instruction * inst = construct_example_instruction();
+        
+        if (!inst) return;
+        
+        if(validate_instruction(&inst, label, methods) == 0) {
+            return;
+        }
+        
+        printf("\nVALIDAÇÃO CONCLUÍDA");
+        print_spacer();
+        
+        Instruction * last_inst = execute_instructions(&inst, rb, memory, label);
+        print_spacer();
+        
+        if (!last_inst) {
+            printf("ERRO NA EXECUÇÃO!\n\n");
+            return;
+        }
+        
+        printf("EXECUÇÃO FINALIZADA!\n\n");
+        Label * last_inst_label = construct_label("__LASTINSTRUCTION", last_inst);
+        
+        last_inst_label->next = (*label)->next;
+        
+        (*label) = last_inst_label;
+        
+        return;
+    } if (opt == 2){
+        Instruction * inst = construct_example_instruction();
+        
+        if (!inst) return;
+        
+        if(validate_instruction(&inst, label, methods) == 0) {
+            return;
+        }
+        
+        printf("\nVALIDAÇÃO CONCLUÍDA");
+        print_spacer();
+        
+        Instruction * last_inst = execute_instructions(&inst, rb, memory, label);
+        print_spacer();
+        
+        if (!last_inst) {
+            printf("ERRO NA EXECUÇÃO!\n\n");
+            return;
+        }
+        
+        printf("EXECUÇÃO FINALIZADA!\n\n");
+        Label * last_inst_label = construct_label("__LASTINSTRUCTION", last_inst);
+        
+        last_inst_label->next = (*label)->next;
+        
+        (*label) = last_inst_label;
+        
+        return;
+    } if (opt == 3) {
+        for (int i = 0 ; i < 32; i++) {
+            printf("reg%i = %i\t\t", i, rb->regs[i]);
+            if (i % 3 == 0) printf("\n");
+        }
+        
+        printf("\n\n");
+        return;
+    } if (opt == 4) {
+        print_code((*label)->inst);
+        
+        return;
+    } if (opt == 0) {
+        printf("SAINDO...");
+        
+        return;
     }
+    
+    printf("WARNING - Nenhuma opção válida");
 }
 
 #endif
