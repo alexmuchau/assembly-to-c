@@ -152,6 +152,8 @@ int validate_instruction(Instruction ** inst, Label ** label, Method * methods[1
 }
 
 Instruction * execute_instructions(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
+    if (!inst) return NULL;
+    
     Instruction * next_inst;
     if ((*inst)->method) {
         next_inst = (*inst)->method->execute(inst, rb, memory, label);
@@ -159,8 +161,9 @@ Instruction * execute_instructions(Instruction ** inst, RegBase * rb, Memory ** 
         next_inst = (*inst)->next;
     }
     
+    if (next_inst) add_sp(next_inst->address, rb);
     if (!next_inst) return (*inst);
-    return execute_instructions(&(next_inst), rb, memory, label);
+    execute_instructions(&(next_inst), rb, memory, label);
 }
 
 Instruction * find_inst_front(int address_to_search, Instruction * inst){
@@ -182,8 +185,8 @@ Instruction * find_inst_back(int address_to_search, Instruction * inst){
 void print_code(Instruction * inst) {
     if (!inst) return;
     
-    print_code(inst->before);
     printf("%s\n", inst->word);
+    print_code(inst->next);
 }
 
 #endif

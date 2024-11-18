@@ -8,4 +8,4 @@
 int print_header_spacer();
 int print_spacer();
 int init_menu();
-void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], int opt);
+void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], Instruction ** head, int opt);

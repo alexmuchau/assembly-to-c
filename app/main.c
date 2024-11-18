@@ -8,9 +8,12 @@
 #include "Hardware/infraestructure.h"
 
 int main() {
+    Instruction * head = construct_inst(NULL);
+    head->address = -4;
+    
     RegBase * reg_base = construct_reg_base();
     Memory * memory = construct_memory();
-    Label * label = construct_label("MAIN:", construct_inst(NULL));
+    Label * label = NULL;
     
     reg_base->write_back(1, 12, &(reg_base->regs));
     reg_base->write_back(2, 8, &(reg_base->regs));
@@ -31,6 +34,6 @@ int main() {
 
     while (opt != 0) {
         opt = init_menu();
-        switch_case(reg_base, &memory, &label, methods, opt);
+        switch_case(reg_base, &memory, &label, methods, &head, opt);
     }
 }

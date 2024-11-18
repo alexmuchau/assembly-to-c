@@ -13,15 +13,17 @@ int print_spacer() {
 
 int init_menu() {
     print_header_spacer();
-    char opts[5][52] = {
+    int len_opts = 6;
+    char opts[6][52] = {
         "Sair",
-        "Interpretador Assembly",
-        "Testar código teste",
+        "Inserir código e interpretador Assembly",
+        "Inserir e testar código teste",
         "Ver registradores",
-        "Ver código completo"
+        "Ver código completo",
+        "Rodar código completo"
     };
-    for (int idx, i = 1; i <= 5; i++) {
-        idx = i % 5;
+    for (int idx, i = 1; i <= len_opts; i++) {
+        idx = i % len_opts;
         printf("%i - %s\n", idx, opts[idx]);
     }
     print_header_spacer();
@@ -29,15 +31,10 @@ int init_menu() {
     int opt = 0;
     scanf("%i", &opt);
     
-    if (opt > 3) {
-        printf("WARNING - Nenhuma opção válida");
-    };
-    
     return opt;
 }
 
-Instruction * construct_example_instruction() {
-    int address = -4;
+Instruction * construct_example_instruction(int address) {
     char * word = "WHILE:";
     Instruction * instruction = malloc(sizeof(Instruction));
     instruction->word = malloc(sizeof(char)*32);
@@ -75,64 +72,54 @@ Instruction * construct_example_instruction() {
     return instruction;
 }
 
-void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], int opt) {
+Instruction * get_last_inst(Instruction * inst) {
+    if (!inst) return NULL;
+    if (!inst->next) return inst;
+    
+    return get_last_inst(inst->next);
+}
+
+void start_execution(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], Instruction ** head) {
+    if(validate_instruction(inst, label, methods) == 0) {
+        return;
+    }
+    
+    printf("\nVALIDAÇÃO CONCLUÍDA");
+    print_spacer();
+    
+    execute_instructions(inst, rb, memory, label);
+    print_spacer();
+    
+    printf("EXECUÇÃO FINALIZADA!\n\n");
+    
+    Instruction * last_inst = get_last_inst((*inst));
+    
+    if ((*head)->address == -4) (*head) = last_inst;
+    else {
+        (*head)->next = (*inst);
+        (*inst)->before = (*head);
+        (*head) = last_inst;
+    }
+}
+
+void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], Instruction ** head, int opt) {
     if (opt == 1) {
-        Instruction * inst = inst_reader((*label)->inst->address);
-        // Instruction * inst = construct_example_instruction();
-        
+        Instruction * inst = inst_reader((*head)->address);
         if (!inst) return;
         
-        if(validate_instruction(&inst, label, methods) == 0) {
-            return;
-        }
-        
-        printf("\nVALIDAÇÃO CONCLUÍDA");
-        print_spacer();
-        
-        Instruction * last_inst = execute_instructions(&inst, rb, memory, label);
-        print_spacer();
-        
-        if (!last_inst) {
-            printf("ERRO NA EXECUÇÃO!\n\n");
-            return;
-        }
-        
-        printf("EXECUÇÃO FINALIZADA!\n\n");
-        Label * last_inst_label = construct_label("__LASTINSTRUCTION", last_inst);
-        
-        last_inst_label->next = (*label)->next;
-        
-        (*label) = last_inst_label;
+        start_execution(&inst, rb, memory, label, methods, head);
         
         return;
+        
     } if (opt == 2){
-        Instruction * inst = construct_example_instruction();
+        Instruction * inst = construct_example_instruction((*head)->address);
         
         if (!inst) return;
         
-        if(validate_instruction(&inst, label, methods) == 0) {
-            return;
-        }
-        
-        printf("\nVALIDAÇÃO CONCLUÍDA");
-        print_spacer();
-        
-        Instruction * last_inst = execute_instructions(&inst, rb, memory, label);
-        print_spacer();
-        
-        if (!last_inst) {
-            printf("ERRO NA EXECUÇÃO!\n\n");
-            return;
-        }
-        
-        printf("EXECUÇÃO FINALIZADA!\n\n");
-        Label * last_inst_label = construct_label("__LASTINSTRUCTION", last_inst);
-        
-        last_inst_label->next = (*label)->next;
-        
-        (*label) = last_inst_label;
+        start_execution(&inst, rb, memory, label, methods, head);
         
         return;
+        
     } if (opt == 3) {
         for (int i = 0 ; i < 32; i++) {
             printf("reg%i = %i\t\t", i, rb->regs[i]);
@@ -141,10 +128,22 @@ void switch_case(RegBase * rb, Memory ** memory, Label ** label, Method * method
         
         printf("\n\n");
         return;
+        
     } if (opt == 4) {
-        print_code((*label)->inst);
+        Instruction * main = find_inst_back(0, *head);
+        print_code(main);
         
         return;
+        
+    } if (opt == 5) {
+        Instruction * main = find_inst_back(0, *head);
+        
+        execute_instructions(&main, rb, memory, label);
+        print_spacer();
+        
+        printf("EXECUÇÃO FINALIZADA!\n\n");
+        return;
+        
     } if (opt == 0) {
         printf("SAINDO...");
         

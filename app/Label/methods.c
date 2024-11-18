@@ -4,6 +4,8 @@
 #include "methods.h"
 
 Label * find_label(char * search_value, Label * head) {
+    if (!head) return NULL;
+    
     if (strcmp(search_value, head->value) == 0) return head;
     
     if (!head->next) return head;
@@ -48,10 +50,11 @@ char * clean_label(char * value) {
 
 Instruction * get_inst_on_labels(char * search_value, Label * head) {
     Label * l = find_label(search_value, head);
+    if (!l) return NULL;
     
     char * clean_value = clean_label(search_value);
     
-    printf("cv:%s == l:%s\n", clean_value, l->value);
+    // printf("cv:%s == l:%s\n", clean_value, l->value);
     
     if (strcmp(clean_value, l->value) != 0) return NULL;
     
