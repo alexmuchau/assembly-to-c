@@ -22,3 +22,4 @@ Instruction * execute_instructions(Instruction ** inst, RegBase * rb, Memory ** 
 Instruction * find_inst_front(int address_to_search, Instruction * inst);
 Instruction * find_inst_back(int address_to_search, Instruction * inst);
 void print_code(Instruction * inst);
+char * trim_word(char * word);

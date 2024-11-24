@@ -13,10 +13,11 @@ int main() {
     
     RegBase * reg_base = construct_reg_base();
     Memory * memory = construct_memory();
-    Label * label = NULL;
+    Label * label = construct_label("MAIN", head);
     
     reg_base->write_back(1, 12, &(reg_base->regs));
     reg_base->write_back(2, 8, &(reg_base->regs));
+    reg_base->write_back(3, 2, &(reg_base->regs));
     
     Method * methods[11] = {
         construct_method("add", 'R'),

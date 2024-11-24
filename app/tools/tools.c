@@ -48,7 +48,7 @@ Instruction * construct_example_instruction(int address) {
     address = instruction->next->address = address + 4;
     instruction->next->before = instruction;
     
-    word = "    addi $2, $2, 2";
+    word = "    add $2, $2, $3";
     instruction->next->next = malloc(sizeof(Instruction));
     instruction->next->next->word = malloc(sizeof(char)*32);
     strcpy(instruction->next->next->word, word);

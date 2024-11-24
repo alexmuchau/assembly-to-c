@@ -131,7 +131,7 @@ int validate_instruction(Instruction ** inst, Label ** label, Method * methods[1
     
     // Caso seja LABEL
     if (!(*inst)->method) {
-        printf("<É LABEL> | %s\n", cleaned_word);
+        printf("<Adicionando Label ao banco de Labels> | %s\n", cleaned_word);
         
         char * label_value = clean_label(cleaned_word);
         if (label_value) create_new_label(label_value, (*inst), (*label));

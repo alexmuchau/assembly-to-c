@@ -36,7 +36,7 @@ int semantical_verification_r(Instruction * inst) {
     
     Param * param = inst->params;
     
-    if (param->type != 'R' && param->next->type != 'R' && (param->next->next->type != 'R' && param->next->next->type != 'M')) {
+    if (param->type != 'R' && param->next->type != 'R' && (param->next->next->type != 'R' && param->next->next->type != 'N')) {
         printf("Parametrização incorreta da instrução (%s)", inst->word);
         return 0;
     }
@@ -79,119 +79,133 @@ int semantical_verification_j(Instruction * inst) {
 }
 
 Instruction * execute_r(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
-    // +1 por conta do $
-    int dest_reg = atoi((*inst)->params->param + 1);
-    int reg1 = atoi((*inst)->params->next->param + 1);
-    int reg2 = atoi((*inst)->params->next->next->param + 1);
+    char * cleaned_word = trim_word((*inst)->word);
+    printf("\n%s (%d)------------------->\n", cleaned_word, (*inst)->address);
     
-    int reg1_value = rb->get_reg_value(reg1, rb->regs);
-    int reg2_value = rb->get_reg_value(reg2, rb->regs);
+    int rs = 0, rt = 0, rd = 0, shamt = 0, funct = 0;
+    
+    rd = atoi((*inst)->params->param + 1);
+    rs = atoi((*inst)->params->next->param + 1);
+    
+    int rs_value = rb->get_reg_value(rs, rb->regs);
     
     if (strcmp((*inst)->method->method, "sll") == 0) {
-        int value = ULA(reg1_value, reg2_value, ">>");
-        rb->write_back(dest_reg, value, &(rb->regs));
+        shamt = atoi((*inst)->params->next->next->param + 1);
         
-        return (*inst)->next;
+        int value = ULA(rs_value, shamt, ">>");
+        rb->write_back(rd, value, &(rb->regs));
+        
+        printf("reg%d = (reg%d)%d >> %d = %d\n", rd, rs, rs_value, shamt, value);
+        
+    } else {
+        rt = atoi((*inst)->params->next->next->param + 1);
+        int rt_value = rb->get_reg_value(rt, rb->regs);
+        
+        if (strcmp((*inst)->method->method, "add") == 0) {
+            int value = ULA(rs_value, rt_value, "+");
+            rb->write_back(rd, value, &(rb->regs));
+            
+            printf("reg%d = (reg%d)%d + (reg%d)%d = %d\n", rd, rs, rs_value, rt, rt_value, value);
+        } else if (strcmp((*inst)->method->method, "sub") == 0) {
+            int value = ULA(rs_value, rt_value, "-");
+            rb->write_back(rd, value, &(rb->regs));
+            
+            printf("reg%d = (reg%d)%d - (reg%d)%d = %d\n", rd, rs, rs_value, rt, rt_value, value);
+        }
     }
     
-    if (strcmp((*inst)->method->method, "add") == 0) {
-        int value = ULA(reg1_value, reg2_value, "+");
-        rb->write_back(dest_reg, value, &(rb->regs));
-        
-        return (*inst)->next;
-    }
-    
-    if (strcmp((*inst)->method->method, "sub") == 0) {
-        int value = ULA(reg1_value, reg2_value, "-");
-        rb->write_back(dest_reg, value, &(rb->regs));
-        
-        return (*inst)->next;
-    }
-    
-    return NULL;
+    printf("  | %12s  | %5s | %5s | %5s | %5s | %5s |\n", "Cód da Inst", "rs", "rt", "rd", "Shamt", "Funct");
+    printf("R | %-12s | %5d | %5d | %5d | %5d | %5d |\n", (*inst)->method->method, rs, rt, rd, shamt, funct);
+    printf("----------------------------------------------------------------|\n\n");
+    return (*inst)->next;;
 }
 
 Instruction * execute_i(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
-    printf("Executando instrução I | %s\n", (*inst)->word);
+    char * cleaned_word = trim_word((*inst)->word);
+    printf("\n%s (%d)------------------->\n", cleaned_word, (*inst)->address);
     
-    int dest_reg = atoi((*inst)->params->param + 1);
+    int rt = atoi((*inst)->params->param + 1), rs = 0, imed = 0;
     
+    Instruction * next_inst;
     if (strcmp((*inst)->method->method, "addi") == 0) {
-        int reg2 = rb->get_reg_value(atoi((*inst)->params->next->param + 1), rb->regs);
-        int num = atoi((*inst)->params->next->next->param);
+        rs = atoi((*inst)->params->next->param + 1);
+        int rs_value = rb->get_reg_value(rs, rb->regs);
+        imed = atoi((*inst)->params->next->next->param);
         
-        int value = ULA(reg2, num, "+");
-        rb->write_back(dest_reg, value, &(rb->regs));
+        int value = ULA(rs_value, imed, "+");
+        rb->write_back(rt, value, &(rb->regs));
         
-        printf("reg%i = reg%i + %i\n\n", dest_reg, reg2, num);
-        return (*inst)->next;
-    }
-    
-    if (strcmp((*inst)->method->method, "beq") == 0) {
-        int reg1 = rb->get_reg_value(dest_reg, rb->regs);
-        int reg2 = rb->get_reg_value(atoi((*inst)->params->next->param + 1), rb->regs);
+        printf("reg%i = reg%i + %i\n", rt, rs, imed);
         
-        int is_equal = ULA(reg1, reg2, "=");
+    } else if (strcmp((*inst)->method->method, "beq") == 0) {
+        rs = atoi((*inst)->params->next->param + 1);
+        int rt_value = rb->get_reg_value(rt, rb->regs);
+        int rs_value = rb->get_reg_value(rs, rb->regs);
+        char * label_to_search = (*inst)->params->next->next->param;
+        next_inst = get_inst_on_labels(label_to_search, (*label));
+        imed = next_inst->address;
         
-        if (is_equal == 1) {
-            printf("%i == %i = True\n\n", reg1, reg2);
-            char * label_to_search = (*inst)->params->next->next->param;
+        int is_equal = ULA(rt_value, rs_value, "=");
+        
+        if (is_equal == 0) next_inst = (*inst)->next;
+             
+        printf("%i == %i = %d\n", rt_value, rs_value, is_equal);
+    } else {
+        imed = get_tag((*inst)->params->next->param, rb->regs);
+        Address * a = get_address(memory, (*memory)->head, imed);
+        
+        if (strcmp((*inst)->method->method, "lw") == 0) {
+            rb->write_back(rt, a->value, &(rb->regs));
             
-            return get_inst_on_labels(label_to_search, (*label));
-        }
-        
-        printf("%i == %i = False\n\n", reg1, reg2);
-        return (*inst)->next;
+            printf("reg%i = %i (Endereço %i)\n", rt, a->value, a->tag);
+            next_inst = (*inst)->next;
+            
+        } else if (strcmp((*inst)->method->method, "sw") == 0) {
+            int rt_value = rb->get_reg_value(rt, rb->regs);
+            a->value = rt_value;
+            
+            printf("(Endereço %i) = reg%i = %i\n", a->tag, rt, a->value);
+            next_inst = (*inst)->next;
+        }   
     }
     
-    int tag = get_tag((*inst)->params->next->param, rb->regs);
-    Address * a = get_address(memory, (*memory)->head, tag);
+    printf("  | %12s  | %5s | %5s | %22s |\n", "Cód da Inst", "rs", "rt", "Endereço Imediato");
+    printf("I | %-12s | %5d | %5d | %21d |\n", (*inst)->method->method, rs, rt, imed);
+    printf("----------------------------------------------------------------|\n\n");
     
-    if (strcmp((*inst)->method->method, "lw") == 0) {
-        rb->write_back(dest_reg, a->value, &(rb->regs));
-        
-        printf("reg%i = %i (Endereço %i)\n\n", dest_reg, a->value, a->tag);
-        return (*inst)->next;
-    }
-    
-    if (strcmp((*inst)->method->method, "sw") == 0) {
-        int dest_reg_value = rb->get_reg_value(dest_reg, rb->regs);
-        a->value = dest_reg_value;
-        
-        printf("(Endereço %i) = reg%i = %i\n\n", a->tag, dest_reg, a->value);
-        return (*inst)->next;
-    }
-    
-    return NULL;
+    return next_inst;
 }
 
 Instruction * execute_j(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label) {
-    printf("Executando instrução J | %s\n", (*inst)->word);
+    char * cleaned_word = trim_word((*inst)->word);
+    printf("\n%s (%d)------------------->\n", cleaned_word, (*inst)->address);
     
+    Instruction * jump_inst;
     if (strcmp((*inst)->method->method, "jr") == 0) {
         int reg1_value = rb->get_reg_value((atoi((*inst)->params->param)), rb->regs);
         
-        if (reg1_value % 4 != 0) return NULL;
+        if (reg1_value % 4 != 0) {
+            printf("ERRO - Endereço incorreto %i (não é múltiplo de 4)\n", reg1_value);
+            return NULL;
+        }
         
-        Instruction * next_inst;
-        if (reg1_value >= (*inst)->address) next_inst = find_inst_front(reg1_value, (*inst));
-        else next_inst = find_inst_back(reg1_value, (*inst));
+        if (reg1_value >= (*inst)->address) jump_inst = find_inst_front(reg1_value, (*inst));
+        else jump_inst = find_inst_back(reg1_value, (*inst));
         
-        printf("Next inst: %s\n\n", next_inst->word);
+    } else {
+        jump_inst = get_inst_on_labels((*inst)->params->param, (*label));
         
-        return next_inst;
+        if (strcmp((*inst)->method->method, "jal") == 0) {
+            Label * ra_label = create_new_label("ra", (*inst), (*label));
+            ra_label->inst = (*inst);
+        }
     }
     
-    Instruction * jump_inst = get_inst_on_labels((*inst)->params->param, (*label));
-    
-    if (strcmp((*inst)->method->method, "jal") == 0) {
-        Label * ra_label = create_new_label("ra", (*inst), (*label));
-        ra_label->inst = (*inst);
-    }
-    
-    return jump_inst->next;
-    
-    return jump_inst->next;
+    printf("Jumping para instrução %s\n", jump_inst->word);
+    printf("  | %12s  | %38s |\n", "Cód da Inst", "Endereço");
+    printf("J | %-12s | %37d |\n", (*inst)->method->method, jump_inst->address);
+    printf("----------------------------------------------------------------|\n\n");
+    return jump_inst;
 }
 
 Method * construct_method(char * method, char type) {
