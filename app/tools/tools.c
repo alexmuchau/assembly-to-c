@@ -3,16 +3,24 @@
 
 #include "tools.h"
 
-int print_header_spacer() {
-    printf("###############################\n");
+void print_spacer() {
+    printf("\n===========================================================\n");
 }
 
-int print_spacer() {
-    printf("\n-------------\n\n");
+void print_title(char * title) {
+    print_spacer();
+    printf("%s\n\n", title);
+}
+
+void print_footer(char * footer) {
+    printf("\n%s", footer);
+    print_spacer();
 }
 
 int init_menu() {
-    print_header_spacer();
+    printf("\n##########################################################\n");
+    printf("--------------- Assembly to C\n");
+    printf("##########################################################\n");
     int len_opts = 6;
     char opts[6][52] = {
         "Sair",
@@ -26,11 +34,11 @@ int init_menu() {
         idx = i % len_opts;
         printf("%i - %s\n", idx, opts[idx]);
     }
-    print_header_spacer();
     
     int opt = 0;
+    printf("\nOpção: ");
     scanf("%i", &opt);
-    
+    printf("##########################################################\n");
     return opt;
 }
 
@@ -80,17 +88,17 @@ Instruction * get_last_inst(Instruction * inst) {
 }
 
 void start_execution(Instruction ** inst, RegBase * rb, Memory ** memory, Label ** label, Method * methods[11], Instruction ** head) {
+    
+    print_title("VALIDAÇÃO INICIADA");
     if(validate_instruction(inst, label, methods) == 0) {
-        return;
+        printf("ERRO NA VALIDAÇÃO!");
+        exit(1);
     }
+    print_footer("VALIDAÇÃO CONCLUÍDA");
     
-    printf("\nVALIDAÇÃO CONCLUÍDA");
-    print_spacer();
-    
+    print_title("EXECUÇÃO INICIADA");
     execute_instructions(inst, rb, memory, label);
-    print_spacer();
-    
-    printf("EXECUÇÃO FINALIZADA!\n\n");
+    print_footer("EXECUÇÃO FINALIZADA");    
     
     Instruction * last_inst = get_last_inst((*inst));
     
